@@ -1,15 +1,75 @@
-import * as React from 'react';
+import { useMemo } from 'react';
 import Box from '@mui/material/Box';
-import { DataGrid } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridToolbarQuickFilter,
+  GridLogicOperator,
+} from '@mui/x-data-grid';
 import { useDemoData } from '@mui/x-data-grid-generator';
 
 import EmptyTableOverlay from '../components/EmptyTable';
+import TableSearch from "../components/TableSearch";
+
+
+const VISIBLE_FIELDS = ['name', 'email', 'phone', 'rating'];
 
 export default function FixedSizeGrid() {
   const { data } = useDemoData({
     dataSet: 'Employee',
+    visibleFields: VISIBLE_FIELDS,
     rowLength: 500,
   });
+
+  const columns = useMemo(
+    () =>
+      data.columns
+        .filter((column) => VISIBLE_FIELDS.includes(column.field))
+        .map((column) => ({ ...column, flex: 0.25 })),
+    [data.columns],
+  );
+
+  /*const columns: GridColDef[] = [
+      {
+        field: 'date',
+        headerName: 'Year',
+        renderCell: (params: GridRenderCellParams<any, Date>) => (
+          <strong>
+            {params.value.getFullYear()}
+            <Button
+              variant="contained"
+              size="small"
+              style={{ marginLeft: 16 }}
+              tabIndex={params.hasFocus ? 0 : -1}
+            >
+              Open
+            </Button>
+          </strong>
+        ),
+      },
+    ];*/ /*{
+        field: 'actions',
+            type: 'actions',
+        width: 80,
+        getActions: (params) => [
+        <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={deleteUser(params.id)}
+        />,
+        <GridActionsCellItem
+            icon={<SecurityIcon />}
+            label="Toggle Admin"
+            onClick={toggleAdmin(params.id)}
+            showInMenu
+        />,
+        <GridActionsCellItem
+            icon={<FileCopyIcon />}
+            label="Duplicate User"
+            onClick={duplicateUser(params.id)}
+            showInMenu
+        />,
+    ],
+    },*/
 
   console.log('66666666666666666666');
   console.log(data);
@@ -23,13 +83,15 @@ export default function FixedSizeGrid() {
         initialState={{
           ...data.initialState,
           pagination: { paginationModel: { pageSize: 10 } },
+          filter: {
+            ...data.initialState?.filter,
+            filterModel: {
+              items: [],
+              quickFilterLogicOperator: GridLogicOperator.Or,
+            },
+          },
         }}
-        columns={[
-          { field: 'name', flex: 0.25 },
-          { field: 'email', flex: 0.25 },
-          { field: 'phone', flex: 0.25 },
-          { field: 'rating', flex: 0.25 },
-        ]}
+        columns={columns}
         autoHeight
         disableColumnMenu
         disableRowSelectionOnClick
@@ -37,7 +99,10 @@ export default function FixedSizeGrid() {
         pageSizeOptions={[10]}
         rowSelection={false}
         sx={{ '--DataGrid-overlayHeight': '300px' }}
-        slots={{ noRowsOverlay: EmptyTableOverlay }}
+        slots={{
+          noRowsOverlay: EmptyTableOverlay,
+          toolbar: TableSearch,
+        }}
       />
     </Box>
   );
